@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Buddy Bot – Learn About Pentagons</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+      background: #f0f4ff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 16px;
+    }
+
+    /* ── Header ── */
+    .header {
+      width: 100%;
+      max-width: 640px;
+      background: #3b5bdb;
+      border-radius: 16px 16px 0 0;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #fff;
+    }
+    .header-avatar {
+      width: 46px;
+      height: 46px;
+      background: #fff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+    .header-info h1 { font-size: 1.1rem; font-weight: 700; }
+    .header-info p  { font-size: 0.78rem; opacity: 0.85; }
+    .status-dot {
+      width: 9px; height: 9px;
+      background: #69db7c;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    /* ── Chat window ── */
+    .chat-window {
+      width: 100%;
+      max-width: 640px;
+      background: #fff;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid #dde3ff;
+      border-right: 1px solid #dde3ff;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 380px;
+      max-height: 420px;
+    }
+
+    /* ── Bubbles ── */
+    .msg { display: flex; align-items: flex-end; gap: 8px; }
+    .msg.bot  { justify-content: flex-start; }
+    .msg.user { justify-content: flex-end; }
+
+    .bubble {
+      max-width: 78%;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-size: 0.88rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .msg.bot  .bubble { background: #f0f4ff; color: #1a1a2e; border-bottom-left-radius: 4px; }
+    .msg.user .bubble { background: #3b5bdb; color: #fff; border-bottom-right-radius: 4px; }
+
+    .bot-icon {
+      width: 30px; height: 30px;
+      background: #3b5bdb;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px;
+      flex-shrink: 0;
+    }
+
+    /* links inside bot bubbles */
+    .bubble a { color: #3b5bdb; text-decoration: underline; }
+    .msg.user .bubble a { color: #c5d8ff; }
+
+    /* ── Quick-action buttons ── */
+    .quick-actions {
+      padding: 8px 16px 4px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .quick-btn {
+      background: #fff;
+      border: 1.5px solid #3b5bdb;
+      color: #3b5bdb;
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 0.78rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      font-family: inherit;
+    }
+    .quick-btn:hover { background: #3b5bdb; color: #fff; }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid #eee;
+    }
+    .input-row input {
+      flex: 1;
+      border: 1.5px solid #d0d7ff;
+      border-radius: 24px;
+      padding: 10px 16px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    .input-row input:focus { border-color: #3b5bdb; }
+    .send-btn {
+      background: #3b5bdb;
+      border: none;
+      border-radius: 50%;
+      width: 42px; height: 42px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      transition: background 0.15s;
+    }
+    .send-btn:hover { background: #2f4acb; }
+    .send-btn svg { fill: #fff; width: 18px; height: 18px; }
+
+    /* ── Footer ── */
+    .footer {
+      width: 100%;
+      max-width: 640px;
+      background: #f7f8ff;
+      border: 1px solid #dde3ff;
+      border-top: none;
+      border-radius: 0 0 16px 16px;
+      padding: 10px 16px;
+      font-size: 0.72rem;
+      color: #888;
+      text-align: center;
+    }
+    .footer a { color: #3b5bdb; text-decoration: none; }
+
+    /* ── Typing indicator ── */
+    .typing { display: flex; gap: 4px; align-items: center; padding: 4px 2px; }
+    .typing span {
+      width: 7px; height: 7px;
+      background: #a0aec0;
+      border-radius: 50%;
+      animation: blink 1.2s infinite;
+    }
+    .typing span:nth-child(2) { animation-delay: 0.2s; }
+    .typing span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); }
+      40%           { opacity: 1;   transform: scale(1); }
+    }
+
+    @media (max-width: 480px) {
+      body { padding: 0; }
+      .header { border-radius: 0; }
+      .chat-window { border-left: none; border-right: none; }
+      .footer { border-radius: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-avatar">📐</div>
+  <div class="header-info">
+    <h1>Study Buddy Bot</h1>
+    <p><span class="status-dot"></span>Mathematics · Pentagons</p>
+  </div>
+</div>
+
+<!-- Chat -->
+<div class="chat-window">
+  <div class="messages" id="messages"></div>
+
+  <!-- Quick-action buttons -->
+  <div class="quick-actions" id="quickActions">
+    <button class="quick-btn" onclick="sendQuick('What is a pentagon?')">What is a pentagon?</button>
+    <button class="quick-btn" onclick="sendQuick('Properties of a pentagon')">Properties of a pentagon</button>
+    <button class="quick-btn" onclick="sendQuick('Real-life examples')">Real-life examples</button>
+    <button class="quick-btn" onclick="sendQuick('Interior angles')">Interior angles</button>
+    <button class="quick-btn" onclick="sendQuick('Give me a practice question')">Practise questions</button>
+    <button class="quick-btn" onclick="sendQuick('I need to contact my teacher')">Contact teacher</button>
+  </div>
+
+  <!-- Input -->
+  <div class="input-row">
+    <input type="text" id="userInput" placeholder="Ask me anything about pentagons…" autocomplete="off" />
+    <button class="send-btn" onclick="handleSend()" title="Send">
+      <svg viewBox="0 0 24 24"><path d="M2 21l21-9L2 3v7l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+  Need extra help? &nbsp;<a href="https://t.me/ymay1226" target="_blank" rel="noopener">Contact your teacher on Telegram</a>
+</div>
+
+<script>
+  // ── Intent data (mirrors intents.json) ──────────────────────────────────────
+  const INTENTS = [
+    {
+      id: "definition",
+      keywords: [
+        "what is a pentagon","define a pentagon","what does pentagon mean",
+        "definition","define pentagon","what is pentagon","pentagon mean",
+        "pentagon definition","explain pentagon","tell me about pentagon"
+      ],
+      response: `A pentagon is a two-dimensional shape with five straight sides, five vertices, and five interior angles. 📐
+
+A <b>regular pentagon</b> has five equal sides and five equal interior angles.`
+    },
+    {
+      id: "properties",
+      keywords: [
+        "properties of a pentagon","properties of pentagon","how many sides",
+        "how many vertices","how many angles","sides of pentagon",
+        "vertices of pentagon","angles of pentagon","features of pentagon",
+        "characteristics of pentagon","pentagon sides","pentagon vertices",
+        "pentagon angles","pentagon properties"
+      ],
+      response: `A pentagon has these properties: 📏
+
+• <b>5 sides</b>
+• <b>5 vertices</b> (corners)
+• <b>5 interior angles</b>
+
+The sum of its interior angles is <b>540°</b>. In a regular pentagon, each interior angle measures <b>108°</b>.`
+    },
+    {
+      id: "real_life",
+      keywords: [
+        "everyday life","real life","real-life","example of a pentagon",
+        "examples of pentagon","objects that look like","look like a pentagon",
+        "find a pentagon","pentagon in real life","where can i find",
+        "pentagon shape","pentagon examples","real world","daily life",
+        "real-life examples","real life examples"
+      ],
+      response: `Pentagon shapes can be found all around us! 🌍
+
+• <b>Badges</b> and emblems
+• <b>Decorative designs</b> and logos
+• <b>Architectural features</b> such as tiled floors
+• The black patches on a traditional <b>football</b> are pentagonal
+
+Keep an eye out — you will spot pentagons in many places!`
+    },
+    {
+      id: "interior_angles",
+      keywords: [
+        "sum of interior angles","interior angles","calculate interior angles",
+        "why is the total angle","total angle sum","angle sum","540",
+        "sum of angles","interior angle sum","angle of pentagon",
+        "why 540","how to calculate angles","angle formula","interior angles"
+      ],
+      response: `The sum of the interior angles of a pentagon is <b>540°</b>. 🔢
+
+We use the formula:
+
+  Sum of interior angles = (n − 2) × 180°
+
+For a pentagon, n = 5:
+
+  (5 − 2) × 180° = 3 × 180° = <b>540°</b>
+
+Each angle in a <i>regular</i> pentagon measures <b>108°</b> because 540° ÷ 5 = 108°.`
+    },
+    {
+      id: "practice",
+      keywords: [
+        "practice question","practise question","practice pentagon",
+        "practise pentagon","test my knowledge","quiz","can i practise",
+        "give me a question","exercise","test me","try a question",
+        "practice","practise","sample question","problem"
+      ],
+      response: `Let's practise! 😊
+
+<b>Question:</b> A regular pentagon has five equal interior angles. If the sum of its interior angles is 540°, what is the size of <i>each</i> interior angle?
+
+💡 <b>Hint:</b> Divide the total interior angle sum by the number of angles.
+
+Try answering before asking for the solution — you've got this!`
+    },
+    {
+      id: "teacher",
+      keywords: [
+        "teacher","ask teacher","contact teacher","help from teacher",
+        "speak to teacher","talk to teacher","human help","real person",
+        "more help","further help","still don't understand","still dont understand",
+        "can't understand","cant understand","confused","contact","ymay1226",
+        "i need to contact my teacher"
+      ],
+      response: `Of course! 😊 Your Mathematics teacher is happy to help.
+
+👩‍🏫 <b>Contact your teacher on Telegram:</b><br>
+<a href="https://t.me/ymay1226" target="_blank" rel="noopener">https://t.me/ymay1226</a>`
+    }
+  ];
+
+  const FALLBACK  = `Sorry, I don't quite understand your question. 😊 Are you asking about the <b>definition</b>, <b>properties</b>, <b>angles</b>, or <b>examples</b> of a pentagon? Please try asking in a different way.`;
+  const ESCALATE  = `I'm sorry I couldn't understand your question after several attempts. 😊 You can contact your Mathematics teacher for further help.\n\n👩‍🏫 <b>Teacher's Telegram:</b> <a href="https://t.me/ymay1226" target="_blank" rel="noopener">https://t.me/ymay1226</a>`;
+  const GREETING  = `Hello! 👋 I'm <b>Study Buddy Bot</b>, your Mathematics learning assistant!\n\nI'm here to help you understand <b>pentagons</b>. What would you like to know?\n\nYou can ask about their <b>definition</b>, <b>properties</b>, <b>interior angles</b>, <b>real-life examples</b>, or try a <b>practice question</b>!`;
+  const OUT_SCOPE = `That's an interesting question! 😊 I'm currently focused on helping students learn about <b>pentagons</b>. Please ask me something related to pentagons, or choose one of the menu options below.`;
+
+  // ── State ────────────────────────────────────────────────────────────────────
+  let failStreak = 0;   // consecutive unrecognised messages
+
+  // ── Intent matching ──────────────────────────────────────────────────────────
+  function matchIntent(text) {
+    const lower = text.toLowerCase().trim();
+
+    // Check greetings / empty
+    if (!lower || /^(hi|hello|hey|good morning|good afternoon|good evening|start|help)$/.test(lower)) {
+      return { id: "greeting", response: GREETING };
+    }
+
+    // Score each intent
+    let best = null, bestScore = 0;
+    for (const intent of INTENTS) {
+      for (const kw of intent.keywords) {
+        if (lower.includes(kw)) {
+          const score = kw.length; // longer match = higher confidence
+          if (score > bestScore) { best = intent; bestScore = score; }
+        }
+      }
+    }
+
+    return best;
+  }
+
+  // ── DOM helpers ──────────────────────────────────────────────────────────────
+  function scrollBottom() {
+    const m = document.getElementById("messages");
+    m.scrollTop = m.scrollHeight;
+  }
+
+  function appendMsg(role, htmlText) {
+    const m = document.getElementById("messages");
+    const row = document.createElement("div");
+    row.className = `msg ${role}`;
+
+    if (role === "bot") {
+      const icon = document.createElement("div");
+      icon.className = "bot-icon";
+      icon.textContent = "📐";
+      row.appendChild(icon);
+    }
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = htmlText.replace(/\n/g, "<br>");
+    row.appendChild(bubble);
+    m.appendChild(row);
+    scrollBottom();
+  }
+
+  function showTyping() {
+    const m = document.getElementById("messages");
+    const row = document.createElement("div");
+    row.className = "msg bot";
+    row.id = "typing-indicator";
+
+    const icon = document.createElement("div");
+    icon.className = "bot-icon";
+    icon.textContent = "📐";
+
+    const bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.innerHTML = `<div class="typing"><span></span><span></span><span></span></div>`;
+
+    row.appendChild(icon);
+    row.appendChild(bubble);
+    m.appendChild(row);
+    scrollBottom();
+  }
+
+  function removeTyping() {
+    const el = document.getElementById("typing-indicator");
+    if (el) el.remove();
+  }
+
+  // ── Core send logic ──────────────────────────────────────────────────────────
+  function processInput(text) {
+    appendMsg("user", escapeHtml(text));
+    showTyping();
+
+    setTimeout(() => {
+      removeTyping();
+      const intent = matchIntent(text);
+
+      if (intent) {
+        failStreak = 0;
+        appendMsg("bot", intent.response);
+      } else {
+        failStreak++;
+        if (failStreak >= 2) {
+          failStreak = 0;
+          appendMsg("bot", ESCALATE);
+        } else {
+          appendMsg("bot", FALLBACK);
+        }
+      }
+    }, 700); // small delay to simulate typing
+  }
+
+  function handleSend() {
+    const input = document.getElementById("userInput");
+    const text  = input.value.trim();
+    if (!text) return;
+    input.value = "";
+    processInput(text);
+  }
+
+  function sendQuick(text) {
+    processInput(text);
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  // Enter key support
+  document.getElementById("userInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") handleSend();
+  });
+
+  // Show greeting on load
+  window.addEventListener("DOMContentLoaded", () => {
+    setTimeout(() => appendMsg("bot", GREETING), 400);
+  });
+</script>
+</body>
+</html>
